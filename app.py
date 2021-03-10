@@ -1,4 +1,7 @@
   
+#################################################
+# Import Dependencies
+#################################################
 import numpy as np
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
@@ -8,7 +11,7 @@ from flask import Flask, jsonify
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///hawaii.sqlite")
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 
 # reflect an existing database into a new model
@@ -16,9 +19,11 @@ Base = automap_base()
 # reflect the tables
 Base.prepare(engine, reflect=True)
 
+#print(Base.classes.keys())
+
 # Save references to each table
-Measurement = Base.classes.measurement
 Station = Base.classes.station
+Measurement = Base.classes.measurement
 
 #################################################
 # Flask Setup
@@ -49,9 +54,7 @@ def precipitation():
 
     """Return a list of all Precipitation Data"""
     # Query all Precipitation
-    results = session.query(Measurement.date, Measurement.prcp).\
-        filter(Measurement.date >= "2016-08-23").\
-        all()
+    results = session.query(Measurement.date, Measurement.prcp).filter(Measurement.date >= "2016-08-23").all()
 
     session.close()
 
@@ -65,7 +68,7 @@ def precipitation():
         prcp_dict["date"] = date
         prcp_dict["prcp"] = prcp
                
-        all_prcp.append(prcp_dict)
+        prcp_list.append(prcp_dict)
 
     return jsonify(prcp_list)
 
@@ -77,8 +80,7 @@ def stations():
 
     """Return a list of all passenger names"""
     # Query all passengers
-    results = session.query(Station.station).\
-        order_by(Station.station).all()
+    results = session.query(Station.station).order_by(Station.station).all()
 
     session.close()
 
