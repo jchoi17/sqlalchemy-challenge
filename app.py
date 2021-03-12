@@ -3,16 +3,18 @@
 # Import Dependencies
 #################################################
 import numpy as np
+
+import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
+
 from flask import Flask, jsonify
 
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///Resources/hawaii.sqlite")
-
+engine = create_engine("sqlite:///../DataClass/Homework/10-Advanced-Data-Storage-and-Retrieval/sqlalchemy-challenge/hawaii.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
@@ -40,8 +42,8 @@ def welcome():
     return (
         f"Available Routes:<br/>"
         f"/api/v1.0/precipitation<br/>"
-        f"/api/v1.0/stations"
-        f"/api/v1.0/tobs"
+        f"/api/v1.0/stations<br/>"
+        f"/api/v1.0/tobs<br/>"
         f"/api/v1.0/[start format:yyyy-mm-dd]<br/>"
         f"/api/v1.0/[start format:yyyy-mm-dd]/[end format:yyyy-mm-dd]<br/>"
     )
@@ -87,13 +89,13 @@ def stations():
     #return results
     station_list = []
 
-    for x in station:
-        station_list.append(temp_dict)
+    for x in results:
+        station_list.append(x)
 
     return jsonify(station_list)
 
 @app.route("/api/v1.0/<start>")
-def temp_query():
+def temp_query(start):
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
@@ -107,17 +109,17 @@ def temp_query():
     #return results
     temp_list = []
 
-    for min,avg,max in queryresult:
+    for min,avg,max in result:
         temp_dict = {}
-        tobs_dict["Min"] = min
-        tobs_dict["Average"] = avg
-        tobs_dict["Max"] = max
-        tobsall.append(temp_dict)
+        temp_dict["Min"] = min
+        temp_dict["Average"] = avg
+        temp_dict["Max"] = max
+        temp_list.append(temp_dict)
 
     return jsonify(temp_list)
 
 @app.route("/api/v1.0/<start>/<end>")
-def temp_query():
+def se_temp(start,end):
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
@@ -131,7 +133,7 @@ def temp_query():
     #return results
     se_temp = []
 
-    for min,avg,max in queryresult:
+    for min,avg,max in result:
         se_dict = {}
         se_dict["Min"] = min
         se_dict["Average"] = avg
