@@ -3,12 +3,11 @@
 # Import Dependencies
 #################################################
 import numpy as np
-
+import datetime as dt
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
-
 from flask import Flask, jsonify
 
 #################################################
@@ -44,8 +43,8 @@ def welcome():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/[start format:yyyy-mm-dd]<br/>"
-        f"/api/v1.0/[start format:yyyy-mm-dd]/[end format:yyyy-mm-dd]<br/>"
+        f"/api/v1.0/[start]<br/>"
+        f"/api/v1.0/[start]/[end]<br/>"
     )
 
 
@@ -53,19 +52,18 @@ def welcome():
 def precipitation():
     # Create our session (link) from Python to the DB
     session = Session(engine)
+    x = dt.datetime(2016, 8, 23)
 
     """Return a list of all Precipitation Data"""
     # Query all Precipitation
-    results = session.query(Measurement.date, Measurement.prcp).filter(Measurement.date >= "2016-08-23").all()
+    results = session.query(Measurement.date, Measurement.prcp).filter(Measurement.date >= x).all()
 
     session.close()
-
-
    
     
     # Convert the list to Dictionary
     prcp_list = []
-    for date,prcp  in results:
+    for date, prcp  in results:
         prcp_dict = {}
         prcp_dict["date"] = date
         prcp_dict["prcp"] = prcp
@@ -89,13 +87,35 @@ def stations():
     #return results
     station_list = []
 
-    for x in results:
-        station_list.append(x)
+    for s in results:
+        station_list.append(s)
 
     return jsonify(station_list)
 
+@app.route("/api/v1.0/tobs")
+def temp_query():
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+    x = dt.datetime(2016, 8, 23)
+
+    """Return a list of all passenger names"""
+    # Query all passengers
+    result = session.query(Measurement.tobs).filter(Measurement.date >= x, Measurement.station == "USC00519281").all()
+
+    session.close()
+
+    #return results
+    temp_list = []
+
+    for r in result:
+        temp_list.append(r)
+    
+    return jsonify(temp_list)
+
+
+
 @app.route("/api/v1.0/<start>")
-def temp_query(start):
+def start_temp(start):
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
@@ -107,16 +127,16 @@ def temp_query(start):
     session.close()
 
     #return results
-    temp_list = []
+    start_temp = []
 
     for min,avg,max in result:
-        temp_dict = {}
-        temp_dict["Min"] = min
-        temp_dict["Average"] = avg
-        temp_dict["Max"] = max
-        temp_list.append(temp_dict)
+        start_dict = {}
+        start_dict["Min"] = min
+        start_dict["Average"] = avg
+        start_dict["Max"] = max
+        start_temp.append(start_dict)
 
-    return jsonify(temp_list)
+    return jsonify(start_temp)
 
 @app.route("/api/v1.0/<start>/<end>")
 def se_temp(start,end):
@@ -126,7 +146,7 @@ def se_temp(start,end):
     """Return a list of all passenger names"""
     # Query all passengers
     result = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-        filter(Measurement.date >= start).all()
+        filter(Measurement.date >= start, Measurement.date <= end).all()
 
     session.close()
 
